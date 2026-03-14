@@ -56,14 +56,18 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await userModel.findOne({ email }).select("-password");
+    const user = await userModel.findOne({ email }).select("+password");
 
     if (user && (await user.matchPassword(password))) {
       const token = generateToken(user._id);
       res.cookie("token", token);
       res.status(200).json({
         message: "logged in succesfully",
-        user,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+        },
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });
