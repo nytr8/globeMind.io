@@ -90,8 +90,8 @@ const getUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// @desc    Get user profile
-// @route   GET /api/auth/user
+// @desc    logout current user
+// @route   GET /api/auth/logout
 // @access  Private
 const logOut = async (req, res) => {
   const { id } = req.user;
