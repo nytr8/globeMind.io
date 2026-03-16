@@ -1,5 +1,10 @@
 import express from "express";
-import { register, login, getUser } from "../controllers/authController.js";
+import {
+  register,
+  login,
+  getUser,
+  logOut,
+} from "../controllers/authController.js";
 import { authUser } from "../middlewares/authMiddleware.js";
 import {
   registerValidation,
@@ -11,5 +16,6 @@ const authRoutes = express.Router();
 authRoutes.post("/register", registerValidation, register);
 authRoutes.post("/login", loginValidation, login);
 authRoutes.get("/get-me", authUser, getUser);
+authRoutes.post("/logout", authUser, logOut);
 
 export default authRoutes;

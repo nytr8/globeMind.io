@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import userModel from "../models/User.js";
+import userModel from "../models/user.model.js";
 
 // Generate JWT
-const generateToken = (id) => {
+const generateAccessTOken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
@@ -31,7 +30,7 @@ const register = async (req, res) => {
     });
 
     if (user) {
-      const token = generateToken(user._id);
+      const token = generateAccessTOken(user._id);
       res.cookie("token", token);
       res.status(201).json({
         message: "user registered succesfully",
@@ -59,7 +58,7 @@ const login = async (req, res) => {
     const user = await userModel.findOne({ email }).select("+password");
 
     if (user && (await user.matchPassword(password))) {
-      const token = generateToken(user._id);
+      const token = generateAccessTOken(user._id);
       res.cookie("token", token);
       res.status(200).json({
         message: "logged in succesfully",
@@ -91,5 +90,22 @@ const getUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// @desc    Get user profile
+// @route   GET /api/auth/user
+// @access  Private
+const logOut = async (req, res) => {
+  const { id } = req.user;
+  const user = await userModel.findOne({ _id: id });
+  if (!user) {
+    return res.status(404).json({
+      message: "user not found",
+    });
+  }
+  res.clearCookie("token");
+  res.status(200).json({
+    message: "logout succesfully",
+    user,
+  });
+};
 
-export { register, login, getUser };
+export { register, login, getUser, logOut };
