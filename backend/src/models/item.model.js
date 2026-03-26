@@ -9,7 +9,7 @@ const itemSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["link", "image", "video", "pdf", "tweet"],
+      enum: ["link", "image", "video", "pdf", "tweet", "website"],
       required: true,
     },
     title: {

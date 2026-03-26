@@ -49,7 +49,7 @@ const register = async (req, res) => {
 };
 
 // @desc    Auth user & get token
-// @route   POST /api/auth/login
+// @route   GET /api/auth/login
 // @access  Public
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -77,7 +77,7 @@ const login = async (req, res) => {
 };
 
 // @desc    Get user profile
-// @route   GET /api/auth/user
+// @route   GET /api/auth/get-me
 // @access  Private
 const getUser = async (req, res) => {
   try {
