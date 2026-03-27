@@ -2,6 +2,7 @@ import itemModel from "../models/item.model.js";
 import ogs from "open-graph-scraper";
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { generateTags } from "../services/ai.service.js";
 
 //detect content function
 const detectType = (url, result) => {
@@ -108,6 +109,9 @@ export const createItem = async (req, res) => {
     contentText = contentText || "No description";
     type = type || "website";
 
+    // generate tags
+    const tags = await generateTags(title);
+
     // ✅ STEP 4: Save to DB
     const item = await itemModel.create({
       userId: id,
@@ -116,6 +120,7 @@ export const createItem = async (req, res) => {
       title,
       thumbnail,
       url,
+      tags: tags,
     });
 
     res.status(201).json({
