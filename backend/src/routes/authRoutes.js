@@ -14,7 +14,7 @@ import {
 const authRoutes = express.Router();
 
 authRoutes.post("/register", registerValidation, register);
-authRoutes.get("/login", loginValidation, login);
+authRoutes.post("/login", loginValidation, login);
 authRoutes.get("/get-me", authUser, getUser);
 authRoutes.get("/logout", authUser, logOut);
 

@@ -14,7 +14,7 @@ const registerUser = async (payload) => {
 };
 
 const loginUser = async (payload) => {
-  const { data } = await api.get("/api/auth/login", payload);
+  const { data } = await api.post("/api/auth/login", payload);
   return data;
 };
 
