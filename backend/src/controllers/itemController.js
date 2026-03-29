@@ -142,12 +142,28 @@ export const createItem = async (req, res) => {
 // route-/api/getallitems
 export const getAllitems = async (req, res) => {
   const { id } = req.user;
+  const { sort, limit } = req.query;
 
   try {
-    const items = await itemModel.find({ userId: id });
-    return res
-      .status(200)
-      .json({ message: "items fetched succesfully", items });
+    let query = itemModel.find({ userId: id });
+
+    // ✅ Sorting (e.g. createdAt:desc)
+    if (sort) {
+      const [field, order] = sort.split(":");
+      query = query.sort({ [field]: order === "desc" ? -1 : 1 });
+    }
+
+    // ✅ Limit (e.g. 4)
+    if (limit) {
+      query = query.limit(parseInt(limit));
+    }
+
+    const items = await query;
+
+    return res.status(200).json({
+      message: "items fetched successfully",
+      items,
+    });
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch items",
