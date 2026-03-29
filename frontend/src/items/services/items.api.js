@@ -7,7 +7,7 @@ const api = axios.create({
 
 export const createItem = async (itemData) => {
   try {
-    const response = await api.post("/api/createitem", itemData);
+    const response = await api.post("/api/create", itemData);
     return response.data;
   } catch (error) {
     console.error("Error creating item:", error);
@@ -16,7 +16,7 @@ export const createItem = async (itemData) => {
 };
 export const getAllItems = async (params = {}) => {
   try {
-    const response = await api.get("/api/getallitems", { params });
+    const response = await api.get("/api/items", { params });
     return response.data;
   } catch (error) {
     console.error("Error fetching items:", error);

@@ -16,12 +16,11 @@ export async function generateTags(description) {
         `Text: ${description}
 
 Rules:
-- Exactly 4 tags
+- Exactly 3 tags
 - Lowercase
 - No duplicates
-- do not add numbers attach to text
 - Single words or short phrases
-- Output format: ["tag1","tag2","tag3","tag4"]`,
+- Output format: ["tag1","tag2","tag3"]`,
       ),
     ]);
 

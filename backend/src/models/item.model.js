@@ -9,8 +9,21 @@ const itemSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["link", "image", "video", "pdf", "tweet", "website"],
+      enum: [
+        "link",
+        "image",
+        "video",
+        "pdf",
+        "tweet",
+        "website",
+        "github",
+        "linkedin",
+        "article",
+        "document",
+        "reddit",
+      ],
       required: true,
+      default: "link",
     },
     title: {
       type: String,
@@ -18,7 +31,7 @@ const itemSchema = new mongoose.Schema(
     },
     url: {
       type: String,
-      required: false,
+      required: true,
     },
     contentText: {
       type: String,
@@ -41,6 +54,11 @@ const itemSchema = new mongoose.Schema(
       ref: "Collection",
       required: false,
     },
+    embedHtml: {
+      type: String,
+      default: null,
+    },
+    createdAt: { type: Date, index: true },
   },
   {
     timestamps: true,

@@ -6,6 +6,7 @@ import {
   FiSettings,
   FiBatteryCharging,
 } from "react-icons/fi";
+import { MdSpaceDashboard } from "react-icons/md";
 import { LuBrainCircuit } from "react-icons/lu";
 const Sidebar = () => {
   return (
@@ -28,6 +29,13 @@ const Sidebar = () => {
             <a
               href="#"
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600/10 text-blue-500 font-medium transition-colors"
+            >
+              <MdSpaceDashboard size={18} />
+              Dashboard
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400  hover:text-white hover:bg-slate-800/50 transition-colors group"
             >
               <FiLayers size={18} />
               All Items

@@ -3,48 +3,34 @@ import ogs from "open-graph-scraper";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { generateTags } from "../services/ai.service.js";
+import {
+  fetchRedditData,
+  detectType,
+  twitterScrapper,
+  linkedinScrapper,
+} from "../utils/scrappingHelper.js";
+// ==============================
+// 🔒 SSRF Protection
+// ==============================
+const BLOCKED_HOSTS = [
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+  "169.254.169.254", // AWS metadata
+];
 
-//detect content function
-const detectType = (url, result) => {
-  const rawType = result?.ogType || "";
-
-  // ✅ 1. YouTube / video platforms
-  if (
-    url.includes("youtube.com") ||
-    url.includes("youtu.be") ||
-    url.match(/\.(mp4|webm|ogg)$/)
-  ) {
-    return "video";
+const isBlockedUrl = (url) => {
+  try {
+    const { hostname } = new URL(url);
+    if (BLOCKED_HOSTS.includes(hostname)) return true;
+    if (/^10\./.test(hostname)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return true;
+    if (/^192\.168\./.test(hostname)) return true;
+    return false;
+  } catch {
+    return true;
   }
-
-  // ✅ 2. Pinterest / direct images
-  if (
-    url.includes("pinterest.com") ||
-    url.includes("pin.it") ||
-    url.match(/\.(jpg|jpeg|png|webp|gif)$/)
-  ) {
-    return "image";
-  }
-
-  // ✅ 3. PDFs
-  if (url.match(/\.pdf$/)) {
-    return "pdf";
-  }
-
-  // ✅ 4. Twitter / X
-  if (url.includes("twitter.com") || url.includes("x.com")) {
-    return "tweet";
-  }
-
-  // ✅ 5. OG-based fallback
-  const cleanType = rawType.split(".")[0];
-
-  if (cleanType === "video") return "video";
-  if (cleanType === "article") return "link";
-  if (cleanType === "website") return "website";
-
-  // ✅ 6. Default fallback
-  return "link";
 };
 
 // create items
@@ -54,65 +40,145 @@ export const createItem = async (req, res) => {
   const { id } = req.user;
   const { url } = req.body;
 
+  // ── Basic validation ──
   if (!url) {
-    return res.status(400).json({
-      message: "url required",
-    });
+    return res.status(400).json({ message: "URL is required" });
   }
 
-  if (!url.startsWith("http")) {
-    return res.status(400).json({
-      message: "Invalid URL format",
-    });
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return res.status(400).json({ message: "Invalid URL format" });
+  }
+
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    return res
+      .status(400)
+      .json({ message: "Only HTTP/HTTPS URLs are allowed" });
+  }
+
+  if (isBlockedUrl(url)) {
+    return res.status(400).json({ message: "This URL is not allowed" });
   }
 
   let title = null;
   let contentText = null;
   let type = null;
   let thumbnail = null;
+  let embedHtml = null;
 
   try {
-    // ✅ STEP 1: Try Open Graph Scraper
-    const { result } = await ogs({ url });
-    console.log(result);
-    title = result?.ogTitle || null;
-    contentText = result?.ogDescription || null;
-    type = detectType(url, result);
-    thumbnail = result?.ogImage?.[0]?.url || null;
+    const lowerUrl = url.toLowerCase();
 
-    // ✅ STEP 2: Fallback using axios + cheerio
-    if (!title || !contentText) {
-      console.log("Using fallback scraping...");
-
-      const { data } = await axios.get(url);
-      const $ = cheerio.load(data);
-
-      // Title fallback
-      title = title || $("title").text();
-
-      // Description fallback
-      contentText =
-        contentText ||
-        $('meta[name="description"]').attr("content") ||
-        $('meta[property="og:description"]').attr("content") ||
-        "No description available";
-
-      // Thumbnail fallback
-      thumbnail =
-        thumbnail || $('meta[property="og:image"]').attr("content") || null;
-
-      type = type || "website";
+    // ==============================
+    // 🐦 1. TWITTER / X
+    // ==============================
+    if (
+      lowerUrl.includes("twitter.com") ||
+      lowerUrl.includes("://x.com/") ||
+      lowerUrl.includes(".x.com/")
+    ) {
+      twitterScrapper();
+      type = "tweet";
     }
 
-    // ✅ STEP 3: Final fallback (NEVER NULL)
-    title = title || "No title";
-    contentText = contentText || "No description";
-    type = type || "website";
+    // ==============================
+    // 💼 2. LINKEDIN
+    // ==============================
+    else if (lowerUrl.includes("linkedin.com")) {
+      linkedinScrapper();
+      contentText = `View this content on LinkedIn`;
+      thumbnail = LINKEDIN_THUMBNAIL;
+    }
+    // ==============================
+    // 🟠 3. REDDIT
+    // ==============================
+    else if (lowerUrl.includes("reddit.com")) {
+      const redditData = await fetchRedditData(url);
+      title = redditData.title;
+      contentText = redditData.contentText;
+      thumbnail = redditData.thumbnail;
+      type = redditData.type;
+    }
 
-    // generate tags
-    const tags = await generateTags(title);
+    // ==============================
+    // 🌐 3. DEFAULT (OG + fallback scraping)
+    // ==============================
+    else {
+      // 🔹 STEP 1: OG Scraping
+      try {
+        const { result, success } = await ogs({ url });
 
-    // ✅ STEP 4: Save to DB
+        // Always call detectType regardless of success
+        type = detectType(url, success ? result : null);
+
+        if (success) {
+          title = result?.ogTitle || null;
+          contentText = result?.ogDescription || null;
+          thumbnail = result?.ogImage?.[0]?.url || null;
+        }
+      } catch (ogsErr) {
+        console.log("OGS failed:", ogsErr.message);
+        type = detectType(url, null);
+      }
+
+      // 🔹 STEP 2: Fallback scraping (only if needed)
+      if (!title || !contentText) {
+        console.log("Using fallback scraping...");
+        try {
+          const { data } = await axios.get(url, {
+            timeout: 5000,
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+            },
+          });
+
+          const $ = cheerio.load(data);
+
+          title =
+            title ||
+            $('meta[property="og:title"]').attr("content") ||
+            $("title").text().trim() ||
+            null;
+
+          contentText =
+            contentText ||
+            $('meta[name="description"]').attr("content") ||
+            $('meta[property="og:description"]').attr("content") ||
+            null;
+
+          thumbnail =
+            thumbnail || $('meta[property="og:image"]').attr("content") || null;
+        } catch (fallbackErr) {
+          console.log("Fallback scraping failed:", fallbackErr.message);
+        }
+      }
+    }
+
+    // ==============================
+    // 🧠 FINAL SAFETY FALLBACK
+    // ==============================
+    title = title?.trim() || "No title";
+    contentText = contentText?.trim() || "No description";
+    type = type || "link";
+
+    // ==============================
+    // 🏷️ TAG GENERATION
+    // ==============================
+    let tags = [];
+    try {
+      const textForTags = `${title} ${contentText}`;
+      tags = await generateTags(textForTags);
+    } catch (tagErr) {
+      console.log("Tag generation failed:", tagErr.message);
+      tags = [];
+    }
+
+    // ==============================
+    // 💾 SAVE TO DB
+    // ==============================
     const item = await itemModel.create({
       userId: id,
       type,
@@ -120,17 +186,17 @@ export const createItem = async (req, res) => {
       title,
       thumbnail,
       url,
-      tags: tags,
+      embedHtml,
+      tags,
     });
 
-    res.status(201).json({
-      message: "item added successfully",
+    return res.status(201).json({
+      message: "Item added successfully",
       item,
     });
   } catch (error) {
     console.error("ERROR:", error.message);
-
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to extract metadata",
       error: error.message,
     });

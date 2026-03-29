@@ -11,13 +11,12 @@ const Topbar = () => {
     event.preventDefault();
     const trimmedValue = inputValue.trim();
     if (!trimmedValue) return;
-    const res = await handleCreateItem({ url: trimmedValue });
+    await toast.promise(handleCreateItem({ url: trimmedValue }), {
+      loading: "Saving item...",
+      success: "Item saved successfully!",
+      error: "Failed to save item.",
+    });
     setInputValue("");
-    if (!res) {
-      toast.success("Item saved successfully!");
-    } else {
-      toast.error("Failed to save item. Please try again.");
-    }
   };
   return (
     <header className="h-20 border-b border-slate-800/50 flex items-center justify-between px-8 bg-[#0D111A]">
