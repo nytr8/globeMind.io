@@ -1,6 +1,4 @@
 import React, { useEffect } from "react";
-import Sidebar from "../../items/components/Sidebar";
-import Topbar from "../../items/components/Topbar";
 import DashboardCard from "../../items/components/DashboardCard";
 import { useSelector } from "react-redux";
 import useItem from "../../items/hook/useItem";
@@ -35,93 +33,60 @@ const Dashboard = () => {
 
   const { handleFetchRecentItems } = useItem();
   const recentItems = useSelector((state) => state.items.recentItems);
-  console.log(recentItems);
+
   useEffect(() => {
     handleFetchRecentItems();
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#0A0D14] font-sans selection:bg-blue-500/30">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        <Topbar />
-
-        <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <div className="max-w-7xl mx-auto space-y-12 pb-12">
-            {/* Resurfaced Section */}
-            <section
-              className="animate-fade-in-up"
-              style={{ animationDelay: "0.1s", animationFillMode: "both" }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.6)]"></div>
-                  <h2 className="text-xl font-bold text-white tracking-wide">
-                    Resurfaced for you
-                  </h2>
-                </div>
-                <button className="text-blue-500 text-sm font-semibold hover:text-blue-400 transition-colors">
-                  View all
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {resurfacedItems.map((item, index) => (
-                  <DashboardCard key={index} {...item} />
-                ))}
-              </div>
-            </section>
-
-            {/* Recently Added Section */}
-            <section
-              className="animate-fade-in-up"
-              style={{ animationDelay: "0.2s", animationFillMode: "both" }}
-            >
-              <div className="flex items-center mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-6 bg-slate-500 rounded-full"></div>
-                  <h2 className="text-xl font-bold text-white tracking-wide">
-                    Recently added
-                  </h2>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recentItems.map((item, index) => (
-                  <DashboardCard key={index} {...item} />
-                ))}
-              </div>
-            </section>
+    <>
+      <div className="max-w-8xl mx-auto space-y-12 pb-12">
+        {/* Resurfaced Section */}
+        <section
+          className="animate-fade-in-up"
+          style={{ animationDelay: "0.1s", animationFillMode: "both" }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.6)]"></div>
+              <h2 className="text-xl font-bold text-white tracking-wide">
+                Resurfaced for you
+              </h2>
+            </div>
+            <button className="text-blue-500 text-sm font-semibold hover:text-blue-400 transition-colors">
+              View all
+            </button>
           </div>
-        </main>
-      </div>
 
-      <style jsx global>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #1e293b;
-          border-radius: 20px;
-        }
-      `}</style>
-    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {resurfacedItems.map((item, index) => (
+              <DashboardCard key={index} {...item} />
+            ))}
+          </div>
+        </section>
+
+        {/* Recently Added Section */}
+        <section
+          className="animate-fade-in-up"
+          style={{ animationDelay: "0.2s", animationFillMode: "both" }}
+        >
+          <div className="flex items-center mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-slate-500 rounded-full"></div>
+              <h2 className="text-xl font-bold text-white tracking-wide">
+                Recently added
+              </h2>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recentItems.map((item, index) => (
+              <DashboardCard key={index} {...item} />
+            ))}
+          </div>
+        </section>
+      </div>
+    </>
   );
 };
 

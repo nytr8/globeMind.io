@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FiSearch, FiPlus, FiLogOut } from "react-icons/fi";
 import useItem from "../hook/useItem";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
+import useAuth from "../../auth/hook/useAuth";
+import { setUser } from "../../auth/auth.slice";
+import { useNavigate } from "react-router-dom";
 const Topbar = () => {
   const [inputValue, setInputValue] = useState("");
   const loading = useSelector((state) => state.items.loading);
   const { handleCreateItem } = useItem();
+  const { handleLogout } = useAuth();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const handleSubmit = async (event) => {
     event.preventDefault();
     const trimmedValue = inputValue.trim();
@@ -60,7 +66,14 @@ const Topbar = () => {
         </button>
       </div>
 
-      <button className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors ml-4 group">
+      <button
+        onClick={() => {
+          handleLogout();
+          dispatch(setUser(null));
+          navigate("/login");
+        }}
+        className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors ml-4 group"
+      >
         <FiLogOut
           size={16}
           className="group-hover:-translate-x-0.5 transition-transform"

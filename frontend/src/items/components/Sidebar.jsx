@@ -8,7 +8,11 @@ import {
 } from "react-icons/fi";
 import { MdSpaceDashboard } from "react-icons/md";
 import { LuBrainCircuit } from "react-icons/lu";
+import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { CgProfile } from "react-icons/cg";
 const Sidebar = () => {
+  const user = useSelector((state) => state.auth.user);
   return (
     <div className="w-64 h-screen bg-[#0A0D14] border-r border-slate-800/50 flex flex-col justify-between hidden md:flex">
       <div>
@@ -26,55 +30,76 @@ const Sidebar = () => {
             LIBRARY
           </p>
           <nav className="space-y-1">
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600/10 text-blue-500 font-medium transition-colors"
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                  isActive
+                    ? "bg-blue-600/30 text-blue-500 font-medium"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                }`
+              }
             >
               <MdSpaceDashboard size={18} />
               Dashboard
-            </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400  hover:text-white hover:bg-slate-800/50 transition-colors group"
+            </NavLink>
+            <NavLink
+              to="/allitems"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                  isActive
+                    ? "bg-blue-600/30 text-blue-500 font-medium"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                }`
+              }
             >
               <FiLayers size={18} />
               All Items
-            </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors group"
+            </NavLink>
+            <NavLink
+              to="/recent"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                  isActive
+                    ? "bg-blue-600/30 text-blue-500 font-medium"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                }`
+              }
             >
               <FiClock
                 size={18}
                 className="group-hover:text-white transition-colors"
               />
               Recent
-            </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors group"
+            </NavLink>
+            <NavLink
+              to="/graph"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                  isActive
+                    ? "bg-blue-600/30 text-blue-500 font-medium"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                }`
+              }
             >
               <FiShare2
                 size={18}
                 className="group-hover:text-white transition-colors"
               />
               Knowledge Graph
-            </a>
+            </NavLink>
           </nav>
         </div>
       </div>
 
       <div className="px-4 py-6 border-t border-slate-800/50">
         <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/50 transition-colors cursor-pointer group border border-slate-700/60">
-          <div className="flex items-center gap-3">
-            <img
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-              alt="Alex Chen"
-              className="w-10 h-10 rounded-full object-cover border border-slate-700"
-            />
+          <div className="flex items-center  gap-3">
+            <CgProfile color="#155DFC" size={25} />
             <div>
-              <p className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors">
-                Alex Chen
+              <p className="text-sm text-white group-hover:text-blue-400 transition-colors">
+                {user.username}
               </p>
               {/* <p className="text-xs text-slate-500">Pro Plan</p> */}
             </div>
