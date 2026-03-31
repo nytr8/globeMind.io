@@ -9,29 +9,8 @@ import {
   twitterScrapper,
   linkedinScrapper,
 } from "../utils/scrappingHelper.js";
-// ==============================
-// 🔒 SSRF Protection
-// ==============================
-const BLOCKED_HOSTS = [
-  "localhost",
-  "127.0.0.1",
-  "0.0.0.0",
-  "::1",
-  "169.254.169.254", // AWS metadata
-];
-
-const isBlockedUrl = (url) => {
-  try {
-    const { hostname } = new URL(url);
-    if (BLOCKED_HOSTS.includes(hostname)) return true;
-    if (/^10\./.test(hostname)) return true;
-    if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return true;
-    if (/^192\.168\./.test(hostname)) return true;
-    return false;
-  } catch {
-    return true;
-  }
-};
+import { isBlockedUrl } from "../utils/urlProtection.js";
+import { itemQueue } from "../queues/itemQueue.js";
 
 // create items
 // protected
@@ -188,8 +167,25 @@ export const createItem = async (req, res) => {
       url,
       embedHtml,
       tags,
+      status: "processing",
     });
 
+    //add to queqe
+    await itemQueue.add(
+      "process-item",
+      { itemId: item._id },
+      {
+        attempts: 3, // retry 3 times
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: true, // clean success jobs
+        removeOnFail: false, // keep failed for debugging
+      },
+    );
+
+    console.log("Job added to queue:", item._id);
     return res.status(201).json({
       message: "Item added successfully",
       item,

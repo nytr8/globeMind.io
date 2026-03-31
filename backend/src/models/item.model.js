@@ -54,6 +54,11 @@ const itemSchema = new mongoose.Schema(
       ref: "Collection",
       required: false,
     },
+    status: {
+      type: String,
+      enum: ["processing", "ready", "failed"],
+      default: "processing",
+    },
     embedHtml: {
       type: String,
       default: null,
