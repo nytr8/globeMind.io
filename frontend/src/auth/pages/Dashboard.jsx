@@ -4,38 +4,40 @@ import { useSelector } from "react-redux";
 import useItem from "../../items/hook/useItem";
 
 const Dashboard = () => {
-  const resurfacedItems = [
-    {
-      badgeType: "ARTICLE",
-      imageUrl:
-        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop",
-      title: "The Future of Spatial Computing: A Deep Dive into AR Systems",
-      sourceText: "Medium",
-      timeAgoText: "1 week ago",
-    },
-    {
-      badgeType: "VIDEO",
-      imageUrl:
-        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=800&auto=format&fit=crop",
-      title: "Understanding Advanced Generative Models in 2026",
-      sourceText: "YouTube",
-      timeAgoText: "3 weeks ago",
-    },
-    {
-      badgeType: "THREAD",
-      imageUrl:
-        "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=800&auto=format&fit=crop",
-      title: "Why modern SaaS architectures are shifting back to monoliths",
-      sourceText: "X / Twitter",
-      timeAgoText: "1 month ago",
-    },
-  ];
+  // const resurfacedItems = [
+  //   {
+  //     badgeType: "ARTICLE",
+  //     imageUrl:
+  //       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop",
+  //     title: "The Future of Spatial Computing: A Deep Dive into AR Systems",
+  //     sourceText: "Medium",
+  //     timeAgoText: "1 week ago",
+  //   },
+  //   {
+  //     badgeType: "VIDEO",
+  //     imageUrl:
+  //       "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=800&auto=format&fit=crop",
+  //     title: "Understanding Advanced Generative Models in 2026",
+  //     sourceText: "YouTube",
+  //     timeAgoText: "3 weeks ago",
+  //   },
+  //   {
+  //     badgeType: "THREAD",
+  //     imageUrl:
+  //       "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=800&auto=format&fit=crop",
+  //     title: "Why modern SaaS architectures are shifting back to monoliths",
+  //     sourceText: "X / Twitter",
+  //     timeAgoText: "1 month ago",
+  //   },
+  // ];
 
-  const { handleFetchRecentItems } = useItem();
+  const { handleFetchRecentItems, handleResurface } = useItem();
   const recentItems = useSelector((state) => state.items.recentItems);
+  const resurfacedItems = useSelector((state) => state.items.resurfaceItems);
 
   useEffect(() => {
     handleFetchRecentItems();
+    handleResurface();
   }, []);
 
   return (

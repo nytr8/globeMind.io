@@ -33,3 +33,12 @@ export const deleteItem = async (itemId) => {
     throw error;
   }
 };
+export const resurfaceItems = async () => {
+  try {
+    const response = await api.get(`/api/resurface`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    throw error;
+  }
+};

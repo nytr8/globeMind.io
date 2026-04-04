@@ -1,10 +1,10 @@
 import "dotenv/config";
 import { Pinecone } from "@pinecone-database/pinecone";
-const pc = new Pinecone({
+export const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
-export const storeVectors = async (vectors, itemId) => {
-  const index = pc.index("cohort-rag").namespace(itemId.toString());
+export const storeVectors = async (vectors, userId) => {
+  const index = pc.index("cohort-rag").namespace(userId.toString());
   console.log("Storing vectors...");
   await index.upsert({
     records: vectors.map((v) => ({

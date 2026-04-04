@@ -6,8 +6,14 @@ import {
   setRecentItems,
   removeItem,
   addItem,
+  setResurfaceItems,
 } from "../item.slice";
-import { createItem, deleteItem, getAllItems } from "../services/items.api";
+import {
+  createItem,
+  deleteItem,
+  getAllItems,
+  resurfaceItems,
+} from "../services/items.api";
 const useItem = () => {
   const dispatch = useDispatch();
 
@@ -89,11 +95,28 @@ const useItem = () => {
       dispatch(setLoading(false));
     }
   };
+  const handleResurface = async () => {
+    dispatch(setLoading(true));
+    try {
+      const data = await resurfaceItems();
+      dispatch(setResurfaceItems(data));
+      console.log("Item deleted:", data.item);
+    } catch (error) {
+      dispatch(
+        setError(
+          error.response?.data?.message || "Something went wrong deleting item",
+        ),
+      );
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
   return {
     handleCreateItem,
     handleFetchAllItems,
     handleDeleteItem,
     handleFetchRecentItems,
+    handleResurface,
   };
 };
 

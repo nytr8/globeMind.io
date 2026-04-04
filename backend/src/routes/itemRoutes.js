@@ -5,6 +5,7 @@ import {
   getAllitems,
   getItem,
   getResurfacedItems,
+  searchItems,
 } from "../controllers/itemController.js";
 import { authUser } from "../middlewares/authMiddleware.js";
 
@@ -15,5 +16,7 @@ itemRouter.get("/items", authUser, getAllitems);
 itemRouter.get("/item/:itemId", authUser, getItem);
 itemRouter.delete("/delete/:itemId", authUser, deleteItem);
 itemRouter.get("/resurface", authUser, getResurfacedItems);
+itemRouter.get("/search", authUser, searchItems);
+// itemRouter.post("/reset", authUser, resetUserVectors);
 
 export default itemRouter;

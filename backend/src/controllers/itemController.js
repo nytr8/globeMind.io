@@ -13,7 +13,9 @@ import { isBlockedUrl } from "../utils/urlProtection.js";
 import { itemQueue } from "../queues/itemQueue.js";
 import dayjs from "dayjs";
 import mongoose from "mongoose";
-
+import { Pinecone } from "@pinecone-database/pinecone";
+import { getEmbedding } from "../utils/getEmbedding.js";
+import { pc } from "../utils/storeVector.js";
 // create items
 // protected
 // route-/api/createitem
@@ -243,14 +245,7 @@ export const getItem = async (req, res) => {
   const { itemId } = req.params;
 
   try {
-    const item = await itemModel.findByIdAndUpdate(
-      itemId,
-      {
-        lastViewedAt: new Date(),
-        $inc: { viewCount: 1 },
-      },
-      { new: true }, // returns updated item
-    );
+    const item = await itemModel.findByById(itemId);
     if (!item) {
       return res.status(404).json({
         message: "Item not found",
@@ -273,7 +268,7 @@ export const deleteItem = async (req, res) => {
   const { itemId } = req.params;
 
   try {
-    const item = await itemModel.findByIdAndDelete({ itemId });
+    const item = await itemModel.findByIdAndDelete(itemId);
 
     if (!item) {
       return res.status(404).json({
@@ -293,55 +288,126 @@ export const deleteItem = async (req, res) => {
 // protected
 // route-/api/resurface
 export const getResurfacedItems = async (req, res) => {
-  const userId = new mongoose.Types.ObjectId(req.user.id);
-
   try {
-    const targets = [
-      dayjs(),
-      dayjs().subtract(1, "day"),
-      dayjs().subtract(3, "day"),
-      dayjs().subtract(7, "day"),
-    ];
-    const someOldDate = dayjs().subtract(23, "day").toDate();
+    if (!mongoose.Types.ObjectId.isValid(req.user?.id)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
 
-    const items = await itemModel.aggregate([
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    let items = await itemModel.aggregate([
+      { $match: { userId } },
       {
-        $match: {
-          userId,
-
-          $and: [
-            {
-              $or: targets.map((date) => ({
-                createdAt: {
-                  $gte: date.startOf("day").toDate(),
-                  $lte: date.endOf("day").toDate(),
-                },
-              })),
-            },
-            {
-              $or: [
-                { lastViewedAt: { $exists: false } },
-                { lastViewedAt: { $lte: someOldDate } },
-              ],
-            },
-          ],
+        $addFields: {
+          effectiveViewCount: { $ifNull: ["$viewCount", 0] },
         },
       },
-      { $sample: { size: 3 } },
+      { $sort: { effectiveViewCount: 1, createdAt: 1 } },
+      { $limit: 3 },
     ]);
 
     const itemIds = items.map((item) => item._id);
 
-    await itemModel.updateMany(
-      { _id: { $in: itemIds } },
-      {
-        $set: { lastViewedAt: new Date() },
-        $inc: { viewCount: 1 },
-      },
-    );
+    if (itemIds.length) {
+      await itemModel.updateMany(
+        { _id: { $in: itemIds } },
+        {
+          $set: { lastViewedAt: new Date() },
+          $inc: { viewCount: 1 },
+        },
+      );
+
+      items = items.map((item) => ({
+        ...item,
+        lastViewedAt: new Date(),
+        viewCount: (item.viewCount ?? 0) + 1,
+      }));
+    }
 
     res.status(200).json(items);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error fetching resurfaced items" });
   }
 };
+
+// searched item
+// protected
+// route-/api/search?q="your_query"
+export const searchItems = async (req, res) => {
+  const userId = req.user.id;
+  console.log(userId);
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ message: "Query is required" });
+    }
+
+    // 1. Embedding
+    const queryVector = await getEmbedding(q);
+
+    // 2. Pinecone search
+    const index = pc.index("cohort-rag").namespace(userId.toString());
+
+    const results = await index.query({
+      vector: queryVector,
+      topK: 10,
+      includeMetadata: true,
+    });
+
+    console.log("Pinecone results:", results.matches);
+
+    if (!results.matches || results.matches.length === 0) {
+      return res.json({
+        message: "No similar items found",
+        results: [],
+      });
+    }
+
+    const filteredMatches = results.matches.filter((m) => m.score > 0.75);
+    // 3. Convert IDs safely
+    const itemIds = [...new Set(filteredMatches.map((m) => m.metadata.itemId))];
+    // 4. Fetch from MongoDB
+    const items = await itemModel.find({
+      _id: { $in: itemIds },
+    });
+
+    // 5. Preserve order
+    const itemsMap = new Map(items.map((item) => [item._id.toString(), item]));
+
+    const orderedItems = itemIds
+      .map((id) => itemsMap.get(id.toString()))
+      .filter(Boolean);
+
+    // 6. Response
+    res.json({
+      message: "Items searched successfully",
+      query: q,
+      results: orderedItems,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Search failed" });
+  }
+};
+
+// route: DELETE /api/v1/vectors/reset
+
+// export const resetUserVectors = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+
+//     const index = pc.index("cohort-rag");
+
+//     await index.namespace(userId).deleteAll();
+
+//     return res.status(200).json({
+//       message: "User vectors deleted successfully",
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: "Failed to delete vectors",
+//     });
+//   }
+// };
