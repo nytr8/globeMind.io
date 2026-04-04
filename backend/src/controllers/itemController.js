@@ -11,6 +11,8 @@ import {
 } from "../utils/scrappingHelper.js";
 import { isBlockedUrl } from "../utils/urlProtection.js";
 import { itemQueue } from "../queues/itemQueue.js";
+import dayjs from "dayjs";
+import mongoose from "mongoose";
 
 // create items
 // protected
@@ -241,15 +243,21 @@ export const getItem = async (req, res) => {
   const { itemId } = req.params;
 
   try {
-    const item = await itemModel.findById({ itemId });
-
+    const item = await itemModel.findByIdAndUpdate(
+      itemId,
+      {
+        lastViewedAt: new Date(),
+        $inc: { viewCount: 1 },
+      },
+      { new: true }, // returns updated item
+    );
     if (!item) {
       return res.status(404).json({
         message: "Item not found",
       });
     }
 
-    return res.status(200).json(item);
+    return res.status(200).json({ message: "item fetched succesfully", item });
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch item",
@@ -278,5 +286,62 @@ export const deleteItem = async (req, res) => {
       message: "Failed to delete item",
       error: error.message,
     });
+  }
+};
+
+// resurfaced item
+// protected
+// route-/api/resurface
+export const getResurfacedItems = async (req, res) => {
+  const userId = new mongoose.Types.ObjectId(req.user.id);
+
+  try {
+    const targets = [
+      dayjs(),
+      dayjs().subtract(1, "day"),
+      dayjs().subtract(3, "day"),
+      dayjs().subtract(7, "day"),
+    ];
+    const someOldDate = dayjs().subtract(23, "day").toDate();
+
+    const items = await itemModel.aggregate([
+      {
+        $match: {
+          userId,
+
+          $and: [
+            {
+              $or: targets.map((date) => ({
+                createdAt: {
+                  $gte: date.startOf("day").toDate(),
+                  $lte: date.endOf("day").toDate(),
+                },
+              })),
+            },
+            {
+              $or: [
+                { lastViewedAt: { $exists: false } },
+                { lastViewedAt: { $lte: someOldDate } },
+              ],
+            },
+          ],
+        },
+      },
+      { $sample: { size: 3 } },
+    ]);
+
+    const itemIds = items.map((item) => item._id);
+
+    await itemModel.updateMany(
+      { _id: { $in: itemIds } },
+      {
+        $set: { lastViewedAt: new Date() },
+        $inc: { viewCount: 1 },
+      },
+    );
+
+    res.status(200).json(items);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching resurfaced items" });
   }
 };

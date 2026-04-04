@@ -64,6 +64,8 @@ const itemSchema = new mongoose.Schema(
       default: null,
     },
     createdAt: { type: Date, index: true },
+    lastViewedAt: { type: Date, index: true },
+    viewCount: { type: Number, default: 0, index: true },
   },
   {
     timestamps: true,
