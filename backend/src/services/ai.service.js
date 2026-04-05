@@ -10,17 +10,18 @@ export async function generateTags(description) {
   try {
     const response = await TagModel.invoke([
       new SystemMessage(
-        "You are a tag generator. Generate exactly 4 short, relevant tags. Return ONLY a JSON array.",
+        "You are a tag generator. Generate exactly 10 short, relevant tags. Return ONLY a JSON array most releavent tags should be at start to end in an decreasing order in releavence.",
       ),
       new HumanMessage(
         `Text: ${description}
 
 Rules:
-- Exactly 3 tags
+- Exactly 10 tags
 - Lowercase
 - No duplicates
+- most releavent at the start
 - Single words or short phrases
-- Output format: ["tag1","tag2","tag3"]`,
+- Output format: ["tag1","tag2","tag3",...,tag10]`,
       ),
     ]);
 

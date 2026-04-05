@@ -9,6 +9,7 @@ const itemSlice = createSlice({
     loading: false,
     error: null,
     results: [],
+    itemDetails: null,
   },
   reducers: {
     setItems: (state, action) => {
@@ -18,6 +19,10 @@ const itemSlice = createSlice({
     setResurfaceItems: (state, action) => {
       state.resurfaceItems = action.payload;
     },
+    setItemDetails: (state, action) => {
+      state.itemDetails = action.payload;
+    },
+
     setReslts: (state, action) => {
       state.results = action.payload;
     },
@@ -61,5 +66,6 @@ export const {
   removeItem,
   setResurfaceItems,
   setReslts,
+  setItemDetails,
 } = itemSlice.actions;
 export default itemSlice.reducer;

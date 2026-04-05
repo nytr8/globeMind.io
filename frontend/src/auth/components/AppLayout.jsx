@@ -5,9 +5,9 @@ import Topbar from "../../items/components/Topbar";
 
 const AppLayout = () => {
   return (
-    <div className="flex min-h-screen bg-[#0A0D14] font-sans selection:bg-blue-500/30">
+    <div className="flex h-screen bg-[#0A0D14] font-sans selection:bg-blue-500/30 overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen md:ml-64">
         <Topbar />
 
         <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">

@@ -24,6 +24,16 @@ export const getAllItems = async (params = {}) => {
   }
 };
 
+export const getItem = async (itemId) => {
+  try {
+    const response = await api.get(`/api/item/${itemId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    throw error;
+  }
+};
+
 export const deleteItem = async (itemId) => {
   try {
     const response = await api.delete(`/api/delete/${itemId}`);

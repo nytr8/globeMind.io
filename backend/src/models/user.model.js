@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: "local",
     },
+    resurfaceSession: {
+      items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Item" }],
+      assignedAt: { type: Date },
+      expiresAt: { type: Date },
+    },
   },
   {
     timestamps: true,

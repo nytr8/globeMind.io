@@ -9,11 +9,13 @@ import {
   addItem,
   setResurfaceItems,
   setReslts,
+  setItemDetails,
 } from "../item.slice";
 import {
   createItem,
   deleteItem,
   getAllItems,
+  getItem,
   resurfaceItems,
   searchItems,
 } from "../services/items.api";
@@ -98,12 +100,31 @@ const useItem = () => {
       dispatch(setLoading(false));
     }
   };
+
+  const handleFetchItem = async (itemId) => {
+    dispatch(setLoading(true));
+    try {
+      const data = await getItem(itemId);
+      dispatch(setItemDetails(data.item));
+      console.log("Item fetched:", data.item);
+      return data.item;
+    } catch (error) {
+      dispatch(
+        setError(
+          error.response?.data?.message || "Something went wrong fetching item",
+        ),
+      );
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
   const handleResurface = async () => {
     dispatch(setLoading(true));
     try {
       const data = await resurfaceItems();
       dispatch(setResurfaceItems(data));
-      console.log("Item deleted:", data.item);
+      console.log("Item resurfaced:", data);
     } catch (error) {
       dispatch(
         setError(
@@ -138,6 +159,7 @@ const useItem = () => {
     handleCreateItem,
     handleFetchAllItems,
     handleDeleteItem,
+    handleFetchItem,
     handleFetchRecentItems,
     handleResurface,
     handleSearch,

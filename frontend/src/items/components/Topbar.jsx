@@ -75,11 +75,6 @@ const Topbar = () => {
             placeholder="Paste URL, text, or drop file to save..."
             className="w-full bg-[#151B2B] text-slate-300 text-sm rounded-xl py-3 pl-11 pr-12 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:bg-[#1A2235] transition-all border border-transparent focus:border-slate-700"
           />
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <span className="text-xs text-slate-500 font-medium bg-slate-800/50 px-2 py-1 rounded-md border border-slate-700/50">
-              ⌘K
-            </span>
-          </div>
         </div>
         <button
           type="button"
@@ -143,7 +138,7 @@ const Topbar = () => {
           dispatch(setUser(null));
           navigate("/login");
         }}
-        className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors ml-4 group"
+        className="flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 hover:text-red-200 text-sm font-medium transition-all ml-4 group px-3 py-2 rounded-lg border border-red-500/20 hover:border-red-500/30"
       >
         <FiLogOut
           size={16}

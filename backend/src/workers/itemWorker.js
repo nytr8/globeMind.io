@@ -23,14 +23,10 @@ const worker = new Worker(
 
     try {
       const textToProcess = [
-        `Title: ${item.title}`,
-        `Content: ${item.contentText}`,
-        `Tags: ${(item.tags || []).join(", ")}`,
-        `Type: ${item.type}`,
-      ]
-        .filter(Boolean)
-        .join("\n");
-
+        item.title, // 🔥 strongest signal
+        item.contentText, // main body
+        ...(item.tags || []), // keywords
+      ];
       if (!textToProcess) {
         throw new Error("No content available");
       }

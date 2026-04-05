@@ -5,6 +5,7 @@ import Protected from "./auth/components/Protected.jsx";
 import AppLayout from "./auth/components/AppLayout.jsx";
 import Dashboard from "./auth/pages/Dashboard.jsx";
 import AllItem from "./items/pages/AllItem.jsx";
+import ItemDetails from "./items/pages/ItemDetails.jsx";
 
 const appRouter = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const appRouter = createBrowserRouter([
       {
         path: "allitems",
         element: <AllItem />,
+      },
+      {
+        path: "item/:itemId",
+        element: <ItemDetails />,
       },
     ],
   },

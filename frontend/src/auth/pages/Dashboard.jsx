@@ -4,8 +4,8 @@ import { useSelector } from "react-redux";
 import useItem from "../../items/hook/useItem";
 
 const Dashboard = () => {
-
-  const { handleFetchRecentItems, handleResurface } = useItem();
+  const { handleFetchRecentItems, handleResurface, handleDeleteItem } =
+    useItem();
   const recentItems = useSelector((state) => state.items.recentItems);
   const resurfacedItems = useSelector((state) => state.items.resurfaceItems);
 
@@ -36,7 +36,11 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {resurfacedItems.map((item, index) => (
-              <DashboardCard key={index} {...item} />
+              <DashboardCard
+                key={index}
+                {...item}
+                onDelete={handleDeleteItem}
+              />
             ))}
           </div>
         </section>
@@ -57,7 +61,11 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recentItems.map((item, index) => (
-              <DashboardCard key={index} {...item} />
+              <DashboardCard
+                key={index}
+                {...item}
+                onDelete={handleDeleteItem}
+              />
             ))}
           </div>
         </section>

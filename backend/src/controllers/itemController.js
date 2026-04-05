@@ -16,6 +16,7 @@ import mongoose from "mongoose";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { getEmbedding } from "../utils/getEmbedding.js";
 import { pc } from "../utils/storeVector.js";
+import userModel from "../models/user.model.js";
 // create items
 // protected
 // route-/api/createitem
@@ -251,7 +252,7 @@ export const getItem = async (req, res) => {
   const { itemId } = req.params;
 
   try {
-    const item = await itemModel.findByById(itemId);
+    const item = await itemModel.findById(itemId);
     if (!item) {
       return res.status(404).json({
         message: "Item not found",
@@ -300,35 +301,71 @@ export const getResurfacedItems = async (req, res) => {
     }
 
     const userId = new mongoose.Types.ObjectId(req.user.id);
+    const now = new Date();
 
-    let items = await itemModel.aggregate([
-      { $match: { userId } },
+    const user = await userModel.findById(userId).lean();
+    const session = user?.resurfaceSession;
+    const sessionActive = session?.expiresAt && session.expiresAt > now;
+
+    if (sessionActive) {
+      // Return the locked items as-is
+      const items = await itemModel
+        .find({ _id: { $in: session.items } })
+        .lean();
+      return res.status(200).json(items);
+    }
+
+    // Session expired or missing — pick a fresh batch
+    const sevenDaysAgo = new Date(Date.now() - 23 * 60 * 60 * 1000);
+    const previousItemIds = session?.items ?? [];
+
+    const items = await itemModel.aggregate([
       {
-        $addFields: {
-          effectiveViewCount: { $ifNull: ["$viewCount", 0] },
+        $match: {
+          userId,
+          createdAt: { $lt: sevenDaysAgo },
+          _id: { $nin: previousItemIds },
         },
       },
-      { $sort: { effectiveViewCount: 1, createdAt: 1 } },
+      {
+        $addFields: {
+          score: {
+            $divide: [
+              { $rand: {} },
+              { $add: [{ $ifNull: ["$viewCount", 0] }, 1] },
+            ],
+          },
+        },
+      },
+      { $sort: { score: -1 } },
       { $limit: 3 },
     ]);
 
-    const itemIds = items.map((item) => item._id);
-
-    if (itemIds.length) {
-      await itemModel.updateMany(
-        { _id: { $in: itemIds } },
-        {
-          $set: { lastViewedAt: new Date() },
-          $inc: { viewCount: 1 },
-        },
-      );
-
-      items = items.map((item) => ({
-        ...item,
-        lastViewedAt: new Date(),
-        viewCount: (item.viewCount ?? 0) + 1,
-      }));
+    if (!items.length) {
+      return res.status(200).json([]);
     }
+
+    const expiresAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+
+    // Save session into user document
+    await userModel.findByIdAndUpdate(userId, {
+      $set: {
+        resurfaceSession: {
+          items: items.map((i) => i._id),
+          assignedAt: now,
+          expiresAt,
+        },
+      },
+    });
+
+    // Increment viewCount for the new batch
+    await itemModel.updateMany(
+      { _id: { $in: items.map((i) => i._id) } },
+      {
+        $set: { lastViewedAt: now },
+        $inc: { viewCount: 1 },
+      },
+    );
 
     res.status(200).json(items);
   } catch (error) {

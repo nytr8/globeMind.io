@@ -14,7 +14,7 @@ import { CgProfile } from "react-icons/cg";
 const Sidebar = () => {
   const user = useSelector((state) => state.auth.user);
   return (
-    <div className="w-64 h-screen bg-[#0A0D14] border-r border-slate-800/50 flex flex-col justify-between hidden md:flex">
+    <div className="w-64 h-screen fixed bg-[#0A0D14] border-r border-slate-800/50 flex flex-col justify-between hidden md:flex overflow-hidden">
       <div>
         <div className="flex items-center gap-3 px-6 py-8">
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
@@ -57,7 +57,7 @@ const Sidebar = () => {
               <FiLayers size={18} />
               All Items
             </NavLink>
-            <NavLink
+            {/* <NavLink
               to="/recent"
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
@@ -72,7 +72,7 @@ const Sidebar = () => {
                 className="group-hover:text-white transition-colors"
               />
               Recent
-            </NavLink>
+            </NavLink> */}
             <NavLink
               to="/graph"
               className={({ isActive }) =>

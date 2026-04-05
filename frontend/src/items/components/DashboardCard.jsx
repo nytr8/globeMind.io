@@ -1,79 +1,11 @@
-import React, { useEffect } from "react";
-import {
-  FiBookOpen,
-  FiVideo,
-  FiFileText,
-  FiGlobe,
-  FiLinkedin,
-  FiGithub,
-  FiImage,
-  FiActivity,
-} from "react-icons/fi";
-import { FiTwitter } from "react-icons/fi";
-import { FaReddit } from "react-icons/fa";
+import { useEffect } from "react";
+import { FiTrash, FiInfo } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { getTimeAgo } from "../utils/getTimestamps";
-
-const getBadgeConfig = (type) => {
-  switch (type?.toUpperCase()) {
-    case "IMAGE":
-      return {
-        icon: <FiImage size={12} />,
-        text: "IMAGE",
-        color: "bg-black/60 text-white",
-      };
-    case "VIDEO":
-      return {
-        icon: <FiVideo size={12} />,
-        text: "VIDEO",
-        color: "bg-blue-900/60 text-blue-100",
-      };
-    case "REDDIT":
-      return {
-        icon: <FaReddit size={12} />,
-        text: "REDDIT",
-        color: "bg-blue-900/60 text-blue-100",
-      };
-    case "GITHUB":
-      return {
-        icon: <FiGithub size={12} />,
-        text: "GITHUB",
-        color: "bg-blue-900/60 text-blue-100",
-      };
-    case "TWEET":
-      return {
-        icon: <FiTwitter size={12} />,
-        text: "TWEET",
-        color: "bg-slate-800/60 text-slate-100",
-      };
-    case "LINKEDIN":
-      return {
-        icon: <FiLinkedin size={12} />,
-        text: "LINKEDIN",
-        color: "bg-slate-800/60 text-slate-100",
-      };
-    case "WEBSITE":
-      return {
-        icon: <FiGlobe size={12} />,
-        text: "WEBSITE",
-        color: "bg-purple-900/60 text-purple-100",
-      };
-    case "DOCUMENT":
-      return {
-        icon: <FiFileText size={12} />,
-        text: "DOCUMENT",
-        color: "bg-emerald-900/60 text-emerald-100",
-      };
-    default:
-      return {
-        icon: <FiBookOpen size={12} />,
-        text: "ARTICLE",
-        color: "bg-black/60 text-white",
-      };
-  }
-};
+import { getBadgeConfig, getRandomTagColor } from "../utils/badgeAndColorGen";
 
 const DashboardCard = ({
+  _id,
   url,
   title,
   tags,
@@ -81,6 +13,7 @@ const DashboardCard = ({
   thumbnail,
   createdAt,
   embedHtml,
+  onDelete,
 }) => {
   const badge = getBadgeConfig(type);
 
@@ -112,6 +45,31 @@ const DashboardCard = ({
           />
         )}
 
+        {/* Delete Button */}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(_id);
+            }}
+            className="absolute top-3 right-3 bg-red-500/80 hover:bg-red-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+            title="Delete item"
+          >
+            <FiTrash size={14} />
+          </button>
+        )}
+
+        {/* More Details Button */}
+        <Link
+          to={`/item/${_id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-3 right-16 bg-blue-500/80 hover:bg-blue-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+          title="View details"
+        >
+          <FiInfo size={14} />
+        </Link>
+
         {/* Badge */}
         <div
           className={`absolute top-3 left-3 ${badge.color} backdrop-blur-md px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-[0.65rem] font-bold tracking-wider border border-white/10`}
@@ -129,11 +87,12 @@ const DashboardCard = ({
 
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-1.5 ">
-            {tags?.map((tag, index) => {
+            {tags?.slice(0, 3).map((tag, index) => {
+              const tagColors = getRandomTagColor(tag);
               return (
                 <span
                   key={index}
-                  className="text-xs text-slate-400 font-medium border border-slate-700/50 bg-slate-700/20 backdrop-blur-sm px-3 py-1 rounded-lg"
+                  className={`text-xs font-medium backdrop-blur-sm px-3 py-1 rounded-lg border ${tagColors.bg} ${tagColors.text} ${tagColors.border}`}
                 >
                   {tag}
                 </span>
