@@ -3,8 +3,8 @@ import connectDB from "./src/config/mongodb.js";
 
 connectDB();
 
-const url = process.env.PORT || process.env.BACKEND_URL;
+const port = process.env.PORT || 5000;
 
-app.listen(url, () => {
+app.listen(port, () => {
   console.log(`server running at ${url}`);
 });
