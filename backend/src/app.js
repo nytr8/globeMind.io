@@ -26,7 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", itemRouter);
 app.use("/api/graph", graphRouter);
 app.use("*name", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "/public/index.html"));
+  res.sendFile(path.join(_dirname, "..", "/public/index.html"));
 });
 
 export default app;
