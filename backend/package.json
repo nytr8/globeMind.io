@@ -33,6 +33,7 @@
     "langchain": "^1.2.37",
     "mongoose": "^9.3.0",
     "open-graph-scraper": "^6.11.0",
+    "path": "^0.12.7",
     "pinecone": "^0.1.0",
     "redis": "^5.11.0"
   }
