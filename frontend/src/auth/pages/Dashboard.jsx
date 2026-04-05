@@ -26,12 +26,9 @@ const Dashboard = () => {
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.6)]"></div>
               <h2 className="text-xl font-bold text-white tracking-wide">
-                Resurfaced for you
+                you might have forgotten these
               </h2>
             </div>
-            <button className="text-blue-500 text-sm font-semibold hover:text-blue-400 transition-colors">
-              View all
-            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

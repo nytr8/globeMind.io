@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const relationSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     itemA: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Item",
@@ -24,6 +29,6 @@ const relationSchema = new mongoose.Schema(
   },
 );
 
-const Relation = mongoose.model("Relation", relationSchema);
+const relationModel = mongoose.model("Relation", relationSchema);
 
-export default Relation;
+export default relationModel;

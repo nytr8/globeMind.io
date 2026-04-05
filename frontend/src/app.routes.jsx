@@ -6,6 +6,7 @@ import AppLayout from "./auth/components/AppLayout.jsx";
 import Dashboard from "./auth/pages/Dashboard.jsx";
 import AllItem from "./items/pages/AllItem.jsx";
 import ItemDetails from "./items/pages/ItemDetails.jsx";
+import GraphView from "./items/pages/GraphView.jsx";
 
 const appRouter = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ const appRouter = createBrowserRouter([
       {
         path: "item/:itemId",
         element: <ItemDetails />,
+      },
+      {
+        path: "graph/getgraph",
+        element: <GraphView />,
       },
     ],
   },

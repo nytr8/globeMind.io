@@ -1,4 +1,5 @@
 import itemModel from "../models/item.model.js";
+import relationModel from "../models/relation.model.js";
 import ogs from "open-graph-scraper";
 import axios from "axios";
 import * as cheerio from "cheerio";
@@ -282,6 +283,11 @@ export const deleteItem = async (req, res) => {
         message: "Item not found",
       });
     }
+
+    await relationModel.deleteMany({
+      $or: [{ itemA: itemId }, { itemB: itemId }],
+    });
+
     return res.status(204).json({ message: "item deleted succesfully", item });
   } catch (error) {
     return res.status(500).json({

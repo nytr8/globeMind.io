@@ -5,6 +5,8 @@ const api = axios.create({
   withCredentials: true,
 });
 
+export { api };
+
 export const createItem = async (itemData) => {
   try {
     const response = await api.post("/api/create", itemData);

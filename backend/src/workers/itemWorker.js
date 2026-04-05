@@ -5,15 +5,18 @@ import { storeVectors } from "../utils/storeVector.js";
 import redisConnection from "../config/redisConnection.js";
 import connectDB from "../config/mongodb.js";
 import { generateEmbeddings } from "../utils/embed.js";
+import { generateRelations } from "../services/relation.service.js";
 
 await connectDB();
 const worker = new Worker(
   "item-queue",
   async (job) => {
     const { itemId } = job.data;
+
     const item = await itemModel.findById(itemId);
     if (!item) throw new Error("Item not found");
 
+    const userId = item.userId;
     if (item.status === "ready") {
       console.log("Skipping already processed item:", itemId);
       return;
@@ -23,17 +26,17 @@ const worker = new Worker(
 
     try {
       const textToProcess = [
-        item.title, // 🔥 strongest signal
-        item.contentText, // main body
-        ...(item.tags || []), // keywords
-      ];
+        `Title: ${item.title || ""}`,
+        `Content: ${item.contentText || ""}`,
+        `Tags: ${(item.tags || []).join(", ")}`,
+      ].join("\n\n");
       if (!textToProcess) {
         throw new Error("No content available");
       }
 
       // 2. Chunk text
       console.log("Chunking...");
-      const chunks = await splitIntoChunks(textToProcess);
+      const chunks = await splitIntoChunks(String(textToProcess));
 
       // embed query
       console.log("Embedding...");
@@ -60,6 +63,8 @@ const worker = new Worker(
       );
       await storeVectors(vectors, item.userId);
 
+      const mainEmbedding = vectors[0].vector;
+      await generateRelations(itemId, userId, mainEmbedding);
       // 5. Update status
       await itemModel.findByIdAndUpdate(itemId, {
         status: "ready",

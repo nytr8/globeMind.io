@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon server.js",
-    "worker": "node src/workers/itemWorker.js"
+    "start": "concurrently \"node server.js\" \"node src/workers/itemWorker.js\"",
+    "dev": "concurrently \"nodemon server.js\" \"node src/workers/itemWorker.js\""
   },
   "keywords": [],
   "author": "",
