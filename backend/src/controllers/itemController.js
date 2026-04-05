@@ -62,7 +62,10 @@ export const createItem = async (req, res) => {
       lowerUrl.includes("://x.com/") ||
       lowerUrl.includes(".x.com/")
     ) {
-      twitterScrapper();
+      const scrapedData = await twitterScrapper(url);
+      title = scrapedData.title;
+      contentText = scrapedData.contentText;
+      embedHtml = scrapedData.embedHtml;
       type = "tweet";
     }
 
@@ -70,19 +73,22 @@ export const createItem = async (req, res) => {
     // 💼 2. LINKEDIN
     // ==============================
     else if (lowerUrl.includes("linkedin.com")) {
-      linkedinScrapper();
+      const linkdinData = await linkedinScrapper(url);
+      title = linkdinData.title;
+      type = "linkedin";
       contentText = `View this content on LinkedIn`;
-      thumbnail = LINKEDIN_THUMBNAIL;
+      thumbnail =
+        "https://store-images.s-microsoft.com/image/apps.46485.9007199266245564.44dc7699-748d-4c34-ba5e-d04eb48f7960.df3dbdf7-e6b9-4d2a-a5ad-3b91e430d172";
     }
     // ==============================
     // 🟠 3. REDDIT
     // ==============================
     else if (lowerUrl.includes("reddit.com")) {
-      const redditData = await fetchRedditData(url);
-      title = redditData.title;
-      contentText = redditData.contentText;
-      thumbnail = redditData.thumbnail;
-      type = redditData.type;
+      const scrapedData = await fetchRedditData(url);
+      title = scrapedData.title;
+      contentText = scrapedData.contentText;
+      thumbnail = scrapedData.thumbnail;
+      type = scrapedData.type;
     }
 
     // ==============================
@@ -391,23 +397,3 @@ export const searchItems = async (req, res) => {
     res.status(500).json({ error: "Search failed" });
   }
 };
-
-// route: DELETE /api/v1/vectors/reset
-
-// export const resetUserVectors = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-
-//     const index = pc.index("cohort-rag");
-
-//     await index.namespace(userId).deleteAll();
-
-//     return res.status(200).json({
-//       message: "User vectors deleted successfully",
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       message: "Failed to delete vectors",
-//     });
-//   }
-// };

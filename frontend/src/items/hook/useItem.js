@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import {
   setItems,
@@ -7,12 +8,14 @@ import {
   removeItem,
   addItem,
   setResurfaceItems,
+  setReslts,
 } from "../item.slice";
 import {
   createItem,
   deleteItem,
   getAllItems,
   resurfaceItems,
+  searchItems,
 } from "../services/items.api";
 const useItem = () => {
   const dispatch = useDispatch();
@@ -111,12 +114,33 @@ const useItem = () => {
       dispatch(setLoading(false));
     }
   };
+  const handleSearch = useCallback(
+    async (query) => {
+      dispatch(setLoading(true));
+      try {
+        const results = await searchItems(query);
+        dispatch(setReslts(results.results || results));
+        console.log("Search results:", results);
+      } catch (error) {
+        dispatch(
+          setError(
+            error.response?.data?.message ||
+              "Something went wrong searching items",
+          ),
+        );
+      } finally {
+        dispatch(setLoading(false));
+      }
+    },
+    [dispatch],
+  );
   return {
     handleCreateItem,
     handleFetchAllItems,
     handleDeleteItem,
     handleFetchRecentItems,
     handleResurface,
+    handleSearch,
   };
 };
 

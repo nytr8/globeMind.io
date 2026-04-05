@@ -73,6 +73,8 @@ const useAuth = () => {
     }
   };
 
+
+
   return { handleRegister, handleLogin, handleLogout, handleGetMe };
 };
 

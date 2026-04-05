@@ -42,3 +42,15 @@ export const resurfaceItems = async () => {
     throw error;
   }
 };
+
+export const searchItems = async (query) => {
+  try {
+    const response = await api.get(
+      `/api/search?q=${encodeURIComponent(query)}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error searching items:", error);
+    throw error;
+  }
+};

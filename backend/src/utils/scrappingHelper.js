@@ -109,13 +109,33 @@ export const fetchRedditData = async (url) => {
 
     let thumbnail = null;
 
-    // ✅ 1. Best: use the actual linked image (imgur, i.redd.it direct links)
-    const destUrl = post.url_overridden_by_dest || "";
-    if (/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(destUrl)) {
-      thumbnail = destUrl;
+    // ✅ 1. For hosted Reddit videos, use the video thumbnail
+    if (post.media?.reddit_video?.thumbnail) {
+      thumbnail = post.media.reddit_video.thumbnail;
     }
 
-    // ✅ 2. Try media_metadata (gallery posts)
+    // ✅ 2. Use static preview image (better than GIF for videos)
+    if (!thumbnail && post.preview?.images?.[0]?.source?.url) {
+      thumbnail = post.preview.images[0].source.url.replace(/&amp;/g, "&");
+    }
+
+    // ✅ 3. Try external_preview GIF variant (fallback)
+    if (!thumbnail && post.preview?.images?.[0]?.variants?.gif?.source?.url) {
+      thumbnail = post.preview.images[0].variants.gif.source.url.replace(
+        /&amp;/g,
+        "&",
+      );
+    }
+
+    // ✅ 4. Use the actual linked image (imgur, i.redd.it direct links)
+    if (!thumbnail) {
+      const destUrl = post.url_overridden_by_dest || "";
+      if (/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(destUrl)) {
+        thumbnail = destUrl;
+      }
+    }
+
+    // ✅ 5. Try media_metadata (gallery posts)
     if (!thumbnail && post.media_metadata) {
       const firstMedia = Object.values(post.media_metadata)[0];
       const src = firstMedia?.s?.u || firstMedia?.s?.gif;
@@ -124,15 +144,7 @@ export const fetchRedditData = async (url) => {
       }
     }
 
-    // ✅ 3. Try external_preview (less CDN-restricted than preview)
-    if (!thumbnail && post.preview?.images?.[0]?.variants?.gif?.source?.url) {
-      thumbnail = post.preview.images[0].variants.gif.source.url.replace(
-        /&amp;/g,
-        "&",
-      );
-    }
-
-    // ✅ 4. Thumbnail from post (only if it's a real URL, not "self"/"default"/"nsfw")
+    // ✅ 6. Thumbnail from post (accept https URLs too)
     if (!thumbnail && post.thumbnail && post.thumbnail.startsWith("http")) {
       thumbnail = post.thumbnail;
     }
@@ -156,6 +168,9 @@ export const fetchRedditData = async (url) => {
 
 // twitter scrapping
 export const twitterScrapper = async (url) => {
+  let title = null;
+  let contentText = null;
+  let embedHtml = null;
   try {
     const response = await fetch(
       `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`,
@@ -172,10 +187,15 @@ export const twitterScrapper = async (url) => {
     title = "Twitter Post";
     contentText = "View on Twitter";
   }
+  return { title, contentText, embedHtml };
 };
 
 // linkedin scrapper
-export const linkedinScrapper = async () => {
+export const linkedinScrapper = async (url) => {
+  let title = null;
+  let extra = null;
+  const parsedUrl = new URL(url);
+
   const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
   const rawSlug = pathParts[1] || "LinkedIn User";
   const cleanSlug = rawSlug.replace(/-\d+$/, "");
@@ -185,16 +205,16 @@ export const linkedinScrapper = async () => {
 
   // Differentiate LinkedIn content types
   if (parsedUrl.pathname.includes("/posts/")) {
-    type = "linkedin-post";
+    extra = "post";
     title = `${displayName}'s LinkedIn Post`;
   } else if (parsedUrl.pathname.includes("/in/")) {
-    type = "linkedin-profile";
+    extra = "profile";
     title = `${displayName} — LinkedIn Profile`;
   } else if (parsedUrl.pathname.includes("/company/")) {
-    type = "linkedin-company";
+    extra = "company";
     title = `${displayName} — LinkedIn Company`;
   } else {
-    type = "linkedin";
     title = `${displayName}'s LinkedIn`;
   }
+  return { title, extra };
 };

@@ -1,18 +1,24 @@
-import { useState } from "react";
-import { FiSearch, FiPlus, FiLogOut } from "react-icons/fi";
+import { useState, useEffect, useRef } from "react";
+import { FiSearch, FiPlus, FiLogOut, FiX } from "react-icons/fi";
 import useItem from "../hook/useItem";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import useAuth from "../../auth/hook/useAuth";
 import { setUser } from "../../auth/auth.slice";
 import { useNavigate } from "react-router-dom";
+import SearchSuggestions from "./SearchSuggestions";
 const Topbar = () => {
   const [inputValue, setInputValue] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceTimerRef = useRef(null);
   const loading = useSelector((state) => state.items.loading);
-  const { handleCreateItem } = useItem();
+  const results = useSelector((state) => state.items.results);
+  const { handleCreateItem, handleSearch } = useItem();
   const { handleLogout } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const trimmedValue = inputValue.trim();
@@ -23,6 +29,34 @@ const Topbar = () => {
       error: "Failed to save item.",
     });
     setInputValue("");
+  };
+
+  // Debounced search handler
+  useEffect(() => {
+    if (!searchValue.trim()) {
+      setShowSuggestions(false);
+      return;
+    }
+
+    setShowSuggestions(true);
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(async () => {
+      await handleSearch(searchValue.trim());
+    }, 500); // 500ms debounce delay
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchValue, handleSearch]);
+
+  const handleCloseSuggestions = () => {
+    setShowSuggestions(false);
   };
   return (
     <header className="h-20 border-b border-slate-800/50 flex items-center justify-between px-8 bg-[#0D111A]">
@@ -65,7 +99,44 @@ const Topbar = () => {
           )}
         </button>
       </div>
-
+      <div className="mr-20">
+        <div className="relative group w-60">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiSearch
+              className="text-slate-500 group-focus-within:text-blue-500 transition-colors"
+              size={16}
+            />
+          </div>
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onFocus={() => searchValue && setShowSuggestions(true)}
+            placeholder="Search items..."
+            className="w-full bg-[#151B2B] text-slate-300 text-sm rounded-xl py-2.5 pl-10 pr-10 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:bg-[#1A2235] transition-all border border-transparent focus:border-slate-700"
+          />
+          {searchValue && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchValue("");
+                setShowSuggestions(false);
+                setSearchResults([]);
+              }}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              <FiX size={14} />
+            </button>
+          )}
+          {showSuggestions && searchValue && (
+            <SearchSuggestions
+              results={results}
+              isLoading={loading}
+              onClose={handleCloseSuggestions}
+            />
+          )}
+        </div>
+      </div>
       <button
         onClick={() => {
           handleLogout();
