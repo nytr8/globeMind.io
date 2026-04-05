@@ -4,27 +4,75 @@ import { useSelector } from "react-redux";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import useAuth from "../hook/useAuth";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const validateLoginForm = ({ email, password }) => {
+  const errors = {};
+
+  if (!email.trim()) {
+    errors.email = "Email is required";
+  } else if (!emailRegex.test(email.trim())) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  if (!password.trim()) {
+    errors.password = "Password is required";
+  }
+
+  return errors;
+};
+
 const Login = () => {
   const { handleLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const { loading, error, user } = useSelector((state) => state.auth);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const { loading, user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    if (formError) {
+      setFormError("");
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const res = await handleLogin(formData);
+
+    const normalizedData = {
+      email: formData.email.trim(),
+      password: formData.password,
+    };
+
+    const clientErrors = validateLoginForm(normalizedData);
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setFormError("Please fix the highlighted fields.");
+      return;
+    }
+
+    const res = await handleLogin(normalizedData);
     if (res.success) {
       navigate("/");
+      return;
     }
+
+    const nextFieldErrors = { ...(res.fieldErrors || {}) };
+    if (!nextFieldErrors.password && res.message === "Invalid email or password") {
+      nextFieldErrors.password = "Invalid email or password";
+    }
+
+    setFieldErrors(nextFieldErrors);
+    setFormError(res.message || "Unable to login");
   };
 
   if (!loading && user) {
@@ -39,7 +87,7 @@ const Login = () => {
           Sign in with your email and password.
         </p>
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
           <div>
             <label
               htmlFor="email"
@@ -53,10 +101,15 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+              aria-invalid={Boolean(fieldErrors.email)}
+              className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:border-slate-900 ${
+                fieldErrors.email ? "border-red-500" : "border-slate-300"
+              }`}
               placeholder="you@example.com"
             />
+            {fieldErrors.email ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+            ) : null}
           </div>
 
           <div>
@@ -73,8 +126,10 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                required
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-sm outline-none transition focus:border-slate-900"
+                aria-invalid={Boolean(fieldErrors.password)}
+                className={`w-full rounded-lg border px-3 py-2 pr-10 text-sm outline-none transition focus:border-slate-900 ${
+                  fieldErrors.password ? "border-red-500" : "border-slate-300"
+                }`}
                 placeholder="Enter your password"
               />
               <button
@@ -90,6 +145,9 @@ const Login = () => {
                 )}
               </button>
             </div>
+            {fieldErrors.password ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+            ) : null}
           </div>
 
           <button
@@ -101,9 +159,9 @@ const Login = () => {
           </button>
         </form>
 
-        {error ? (
+        {formError ? (
           <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
+            {formError}
           </p>
         ) : null}
         <div className="flex items-center justify-center mt-5">

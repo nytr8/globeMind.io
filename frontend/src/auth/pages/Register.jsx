@@ -4,28 +4,92 @@ import { useSelector } from "react-redux";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import useAuth from "../hook/useAuth";
 
+const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook)\.com$/;
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+const validateRegisterForm = ({ username, email, password }) => {
+  const errors = {};
+
+  if (!username.trim()) {
+    errors.username = "Username is required";
+  } else if (username.trim().length < 3 || username.trim().length > 30) {
+    errors.username = "Username must be between 3 and 30 characters";
+  }
+
+  if (!email.trim()) {
+    errors.email = "Email is required";
+  } else if (!emailRegex.test(email.trim())) {
+    errors.email = "Use a valid gmail, yahoo, or outlook address";
+  }
+
+  if (!password) {
+    errors.password = "Password is required";
+  } else if (!passwordRegex.test(password)) {
+    errors.password =
+      "Password must include uppercase, lowercase, number, special character, and be 8+ chars";
+  }
+
+  return errors;
+};
+
 const Register = () => {
   const { handleRegister } = useAuth();
-  const { loading, error, user } = useSelector((state) => state.auth);
+  const { loading, user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
   });
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    if (formError) {
+      setFormError("");
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const res = await handleRegister(formData);
+
+    const normalizedData = {
+      username: formData.username.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+    };
+
+    const clientErrors = validateRegisterForm(normalizedData);
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setFormError("Please fix the highlighted fields.");
+      return;
+    }
+
+    const res = await handleRegister(normalizedData);
     if (res.success) {
       navigate("/");
+      return;
     }
+
+    const nextFieldErrors = { ...(res.fieldErrors || {}) };
+    if (
+      !nextFieldErrors.email &&
+      typeof res.message === "string" &&
+      res.message.toLowerCase().includes("user already exists")
+    ) {
+      nextFieldErrors.email = "An account already exists with this email";
+    }
+
+    setFieldErrors(nextFieldErrors);
+    setFormError(res.message || "Unable to register");
   };
 
   if (!loading && user) {
@@ -40,7 +104,7 @@ const Register = () => {
           Create a new account with username, email, and password.
         </p>
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
           <div>
             <label
               htmlFor="username"
@@ -54,11 +118,15 @@ const Register = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              required
-              minLength={3}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+              aria-invalid={Boolean(fieldErrors.username)}
+              className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:border-slate-900 ${
+                fieldErrors.username ? "border-red-500" : "border-slate-300"
+              }`}
               placeholder="Choose a username"
             />
+            {fieldErrors.username ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.username}</p>
+            ) : null}
           </div>
 
           <div>
@@ -74,10 +142,15 @@ const Register = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+              aria-invalid={Boolean(fieldErrors.email)}
+              className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:border-slate-900 ${
+                fieldErrors.email ? "border-red-500" : "border-slate-300"
+              }`}
               placeholder="you@example.com"
             />
+            {fieldErrors.email ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+            ) : null}
           </div>
 
           <div>
@@ -94,9 +167,10 @@ const Register = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                required
-                minLength={8}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 text-sm outline-none transition focus:border-slate-900"
+                aria-invalid={Boolean(fieldErrors.password)}
+                className={`w-full rounded-lg border px-3 py-2 pr-10 text-sm outline-none transition focus:border-slate-900 ${
+                  fieldErrors.password ? "border-red-500" : "border-slate-300"
+                }`}
                 placeholder="Create a strong password"
               />
               <button
@@ -112,6 +186,9 @@ const Register = () => {
                 )}
               </button>
             </div>
+            {fieldErrors.password ? (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+            ) : null}
           </div>
 
           <button
@@ -123,9 +200,9 @@ const Register = () => {
           </button>
         </form>
 
-        {error ? (
+        {formError ? (
           <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
+            {formError}
           </p>
         ) : null}
       </div>
