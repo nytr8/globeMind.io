@@ -10,10 +10,18 @@ const collectionSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
+    },
+    type: {
+      type: String,
+      required: true,
+      default: "general",
+      trim: true,
     },
     description: {
       type: String,
       required: false,
+      trim: true,
     },
   },
   {

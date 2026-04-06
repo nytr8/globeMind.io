@@ -7,6 +7,7 @@ import Dashboard from "./auth/pages/Dashboard.jsx";
 import AllItem from "./items/pages/AllItem.jsx";
 import ItemDetails from "./items/pages/ItemDetails.jsx";
 import GraphView from "./items/pages/GraphView.jsx";
+import Collections from "./collections/pages/Collections.jsx";
 
 const appRouter = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const appRouter = createBrowserRouter([
       {
         path: "graph/getgraph",
         element: <GraphView />,
+      },
+      {
+        path: "collections",
+        element: <Collections />,
       },
     ],
   },

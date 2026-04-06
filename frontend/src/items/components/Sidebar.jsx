@@ -4,7 +4,7 @@ import {
   FiClock,
   FiShare2,
   FiSettings,
-  FiBatteryCharging,
+  FiFolder,
 } from "react-icons/fi";
 import { MdSpaceDashboard } from "react-icons/md";
 import { LuBrainCircuit } from "react-icons/lu";
@@ -88,6 +88,22 @@ const Sidebar = () => {
                 className="group-hover:text-white transition-colors"
               />
               Knowledge Graph
+            </NavLink>
+            <NavLink
+              to="/collections"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                  isActive
+                    ? "bg-blue-600/30 text-blue-500 font-medium"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                }`
+              }
+            >
+              <FiFolder
+                size={18}
+                className="group-hover:text-white transition-colors"
+              />
+              Collections
             </NavLink>
           </nav>
         </div>

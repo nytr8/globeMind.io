@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import itemRouter from "./routes/itemRoutes.js";
 import cors from "cors";
 import graphRouter from "./routes/graphRoutes.js";
+import collectionRouter from "./routes/collectionRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -29,6 +30,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api", itemRouter);
 app.use("/api/graph", graphRouter);
+app.use("/api/collections", collectionRouter);
 app.use("*name", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });

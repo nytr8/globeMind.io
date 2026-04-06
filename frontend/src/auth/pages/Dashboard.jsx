@@ -31,15 +31,21 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resurfacedItems.map((item, index) => (
-              <DashboardCard
-                key={index}
-                {...item}
-                onDelete={handleDeleteItem}
-              />
-            ))}
-          </div>
+          {resurfacedItems.length === 0 ? (
+            <div className="rounded-xl border border-slate-800/80 bg-[#121826] p-6 text-slate-300">
+              you dont have enough item history
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {resurfacedItems.map((item, index) => (
+                <DashboardCard
+                  key={index}
+                  {...item}
+                  onDelete={handleDeleteItem}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Recently Added Section */}
