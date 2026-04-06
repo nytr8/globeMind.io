@@ -92,6 +92,44 @@ export const createItem = async (req, res) => {
       thumbnail = scrapedData.thumbnail;
       type = scrapedData.type;
     }
+    // ==============================
+    // ▶️ 4. YOUTUBE (FIX)
+    // ==============================
+    else if (
+      lowerUrl.includes("youtube.com") ||
+      lowerUrl.includes("youtu.be")
+    ) {
+      try {
+        // Extract video ID
+        let videoId;
+
+        if (url.includes("youtu.be")) {
+          videoId = url.split("/").pop();
+        } else {
+          videoId = new URL(url).searchParams.get("v");
+        }
+
+        // ✅ Thumbnail (always works)
+        thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+        // ✅ Title (oEmbed API - works on Render)
+        const res = await axios.get(
+          `https://www.youtube.com/oembed?url=${url}&format=json`,
+        );
+
+        title = res.data.title;
+        contentText = res.data.author_name;
+
+        type = "video";
+      } catch (err) {
+        console.log("YouTube fetch failed:", err.message);
+
+        // fallback
+        title = "YouTube Video";
+        contentText = "Watch on YouTube";
+        type = "video";
+      }
+    }
 
     // ==============================
     // 🌐 3. DEFAULT (OG + fallback scraping)
