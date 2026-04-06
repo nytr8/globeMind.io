@@ -5,9 +5,45 @@ import useGraph from "../hook/useGraph";
 const GraphView = () => {
   const { nodes, links, loading, error, handleFetchGraph } = useGraph();
   const svgRef = useRef(null);
+  const delayedRefreshRef = useRef(null);
 
   useEffect(() => {
     handleFetchGraph();
+  }, [handleFetchGraph]);
+
+  useEffect(() => {
+    const onItemCreated = () => {
+      handleFetchGraph();
+
+      // Relation generation can lag behind item creation; retry once after a delay.
+      if (delayedRefreshRef.current) {
+        clearTimeout(delayedRefreshRef.current);
+      }
+
+      delayedRefreshRef.current = setTimeout(() => {
+        handleFetchGraph();
+      }, 4000);
+    };
+
+    const onFocus = () => {
+      handleFetchGraph();
+    };
+
+    window.addEventListener("globemind:item-created", onItemCreated);
+    window.addEventListener("focus", onFocus);
+
+    const intervalId = setInterval(() => {
+      handleFetchGraph();
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("globemind:item-created", onItemCreated);
+      window.removeEventListener("focus", onFocus);
+      clearInterval(intervalId);
+      if (delayedRefreshRef.current) {
+        clearTimeout(delayedRefreshRef.current);
+      }
+    };
   }, [handleFetchGraph]);
 
   useEffect(() => {

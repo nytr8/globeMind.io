@@ -28,14 +28,21 @@ const useItem = () => {
       const data = await createItem(url);
 
       dispatch(addItem(data.item));
+      window.dispatchEvent(
+        new CustomEvent("globemind:item-created", {
+          detail: { itemId: data.item?._id },
+        }),
+      );
 
       console.log("Item created:", data);
+      return data.item;
     } catch (error) {
       dispatch(
         setError(
           error.response?.data?.message || "Something went wrong creating item",
         ),
       );
+      throw error;
     } finally {
       dispatch(setLoading(false));
     }
