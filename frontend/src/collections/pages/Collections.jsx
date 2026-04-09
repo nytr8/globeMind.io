@@ -403,11 +403,11 @@ const Collections = () => {
                 <h3 className="text-lg font-semibold text-white mb-3">
                   Add Item To Collection
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
                   <select
                     value={selectedItemId}
                     onChange={(event) => setSelectedItemId(event.target.value)}
-                    className="bg-[#151B2B] text-slate-200 rounded-lg px-3 py-2 border border-slate-700/70 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
+                    className="w-full min-w-0 bg-[#151B2B] text-slate-200 rounded-lg px-3 py-2 border border-slate-700/70 focus:outline-none focus:ring-1 focus:ring-blue-500/60"
                   >
                     <option value="">Choose item</option>
                     {assignableItems.map((item) => (
@@ -422,7 +422,7 @@ const Collections = () => {
                   <button
                     type="button"
                     onClick={onAddItem}
-                    className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors"
+                    className="inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     <FiPlus size={15} />
                     Add
